@@ -8,13 +8,18 @@
 		"Misemise"
 	],
 	"contact": {
+		"homepage": "https://github.com/Misemise8/SmartInventoryRecall",
+		"sources": "https://github.com/Misemise8/SmartInventoryRecall"
 	},
 	"license": "MIT",
 	"icon": "assets/smartinventoryrecall/icon.png",
-	"environment": "server",
+	"environment": "*",
 	"entrypoints": {
 		"main": [
 			"net.SmartInventoryRecall.SmartInventoryRecall"
+		],
+		"fabric-datagen": [
+			"net.SmartInventoryRecall.SmartInventoryRecallDataGenerator"
 		]
 	},
 	"mixins": [

@@ -1,6 +1,5 @@
 package net.SmartInventoryRecall.mixin;
 
-import net.SmartInventoryRecall.SmartInventoryRecall;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -21,17 +20,22 @@ import java.util.Random;
 public class LivingEntityDropMixin {
     @Unique
     private static final Random smartInventoryRecall_random = new Random();
-    @Unique
-    private static final double COMPACT_RADIUS = 2.0;
 
-    @Inject(method = "dropStack(Lnet/minecraft/item/ItemStack;F)Lnet/minecraft/entity/ItemEntity;", at = @At("RETURN"))
+    @Inject(method = "dropStack(Lnet/minecraft/item/ItemStack;F)Lnet/minecraft/entity/ItemEntity;", at = @At("RETURN"), cancellable = false)
     private void modifyDropPosition(ItemStack stack, float yOffset, CallbackInfoReturnable<ItemEntity> cir) {
         LivingEntity self = (LivingEntity) (Object) this;
 
-        if (!(self instanceof PlayerEntity player) || player.isAlive()) {
+        // Only apply to players
+        if (!(self instanceof PlayerEntity player)) {
             return;
         }
 
+        // Only apply if player is dead (dying)
+        if (player.isAlive()) {
+            return;
+        }
+
+        // Only on server side
         World world = self.getEntityWorld();
         if (world.isClient()) {
             return;
@@ -42,18 +46,17 @@ public class LivingEntityDropMixin {
             return;
         }
 
-        try {
-            double baseX = player.getX();
-            double baseY = player.getY() + 0.2;
-            double baseZ = player.getZ();
+        // Compact position: random offset within 2 blocks (changed from 4)
+        double baseX = player.getX();
+        double baseY = player.getY() + 0.2; // Slight lift
+        double baseZ = player.getZ();
 
-            double offsetX = (smartInventoryRecall_random.nextDouble() * COMPACT_RADIUS * 2.0) - COMPACT_RADIUS;
-            double offsetZ = (smartInventoryRecall_random.nextDouble() * COMPACT_RADIUS * 2.0) - COMPACT_RADIUS;
+        double offsetX = (smartInventoryRecall_random.nextDouble() * 4.0) - 2.0; // -2 to +2
+        double offsetZ = (smartInventoryRecall_random.nextDouble() * 4.0) - 2.0; // -2 to +2
 
-            itemEntity.setPosition(baseX + offsetX, baseY, baseZ + offsetZ);
-            itemEntity.setVelocity(0, 0, 0);
-        } catch (Exception e) {
-            SmartInventoryRecall.LOGGER.warn("Failed to modify drop position: {}", e.getMessage());
-        }
+        itemEntity.setPosition(baseX + offsetX, baseY, baseZ + offsetZ);
+
+        // Zero out velocity to prevent scattering
+        itemEntity.setVelocity(0, 0, 0);
     }
 }

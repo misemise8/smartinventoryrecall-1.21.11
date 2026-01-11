@@ -3,7 +3,9 @@
 	"package": "net.SmartInventoryRecall.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"LivingEntityDropMixin"
+		"ExampleMixin",
+		"LivingEntityDropMixin",
+		"PlayerEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -1,6 +1,6 @@
 package net.SmartInventoryRecall.event;
 
-import net.SmartInventoryRecall.SmartInventoryRecall;
+import net.SmartInventoryRecall.data.ModAttachments;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -18,8 +18,6 @@ import java.util.Random;
  */
 public class DeathDropHandler implements ServerLivingEntityEvents.AfterDeath {
     private static final Random random = new Random();
-    private static final double COMPACT_RADIUS = 2.0;
-    private static final double SEARCH_RADIUS = 10.0;
 
     @Override
     public void afterDeath(LivingEntity entity, DamageSource damageSource) {
@@ -27,51 +25,38 @@ public class DeathDropHandler implements ServerLivingEntityEvents.AfterDeath {
             return;
         }
 
-        try {
-            compactDroppedItems(player);
-        } catch (Exception e) {
-            SmartInventoryRecall.LOGGER.error("Failed to compact items for player {}: {}",
-                    player.getName().getString(), e.getMessage());
-        }
+        // Compact dropped items
+        compactDroppedItems(player);
     }
 
     /**
-     * Compact all dropped items near the death position into a 2-block radius.
+     * Compact all dropped items near the death position into a 2-block radius (changed from 4).
      */
     private void compactDroppedItems(ServerPlayerEntity player) {
         ServerWorld world = (ServerWorld) player.getEntityWorld();
 
+        // Search for ItemEntities near the player's death position
         Box searchBox = new Box(
-                player.getX() - SEARCH_RADIUS, player.getY() - 5, player.getZ() - SEARCH_RADIUS,
-                player.getX() + SEARCH_RADIUS, player.getY() + 5, player.getZ() + SEARCH_RADIUS
-        );
+                player.getX() - 10, player.getY() - 5, player.getZ() - 10,
+                player.getX() + 10, player.getY() + 5, player.getZ() + 10);
 
         List<ItemEntity> itemEntities = world.getEntitiesByClass(ItemEntity.class, searchBox,
-                itemEntity -> itemEntity.age < 20);
-
-        if (itemEntities.isEmpty()) {
-            return;
-        }
+                itemEntity -> itemEntity.age < 20); // Recently spawned items
 
         double baseX = player.getX();
         double baseY = player.getY() + 0.2;
         double baseZ = player.getZ();
 
-        int itemCount = 0;
         for (ItemEntity itemEntity : itemEntities) {
-            try {
-                double offsetX = (random.nextDouble() * COMPACT_RADIUS * 2.0) - COMPACT_RADIUS;
-                double offsetZ = (random.nextDouble() * COMPACT_RADIUS * 2.0) - COMPACT_RADIUS;
+            // Calculate random offset within 2 blocks (changed from 4)
+            double offsetX = (random.nextDouble() * 4.0) - 2.0; // -2 to +2
+            double offsetZ = (random.nextDouble() * 4.0) - 2.0; // -2 to +2
 
-                itemEntity.setPosition(baseX + offsetX, baseY, baseZ + offsetZ);
-                itemEntity.setVelocity(0, 0, 0);
-                itemCount++;
-            } catch (Exception e) {
-                SmartInventoryRecall.LOGGER.warn("Failed to reposition item: {}", e.getMessage());
-            }
+            // Reposition the item
+            itemEntity.setPosition(baseX + offsetX, baseY, baseZ + offsetZ);
+
+            // Zero velocity to prevent scattering
+            itemEntity.setVelocity(0, 0, 0);
         }
-
-        SmartInventoryRecall.LOGGER.info("Compacted {} items for player: {}",
-                itemCount, player.getName().getString());
     }
 }
