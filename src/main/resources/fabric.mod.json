@@ -2,24 +2,19 @@
 	"schemaVersion": 1,
 	"id": "smartinventoryrecall",
 	"version": "${version}",
-	"name": "SmartInventoryRecall",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Smart Inventory Recall",
+	"description": "Automatically saves your inventory layout when you die and restores items to their original slots when picked up. Items are compacted near your death location for easy recovery.",
 	"authors": [
-		"Me!"
+		"Misemise"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/smartinventoryrecall/icon.png",
-	"environment": "*",
+	"environment": "server",
 	"entrypoints": {
 		"main": [
 			"net.SmartInventoryRecall.SmartInventoryRecall"
-		],
-		"fabric-datagen": [
-			"net.SmartInventoryRecall.SmartInventoryRecallDataGenerator"
 		]
 	},
 	"mixins": [

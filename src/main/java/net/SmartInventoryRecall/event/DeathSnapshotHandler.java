@@ -16,23 +16,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Handles inventory snapshot capture BEFORE death (when inventory is still
- * present).
+ * Handles inventory snapshot capture BEFORE death (when inventory is still present).
  * Uses ALLOW_DEATH event which fires before items are dropped.
  */
 public class DeathSnapshotHandler implements ServerLivingEntityEvents.AllowDeath {
     @Override
     public boolean allowDeath(LivingEntity entity, DamageSource damageSource, float damageAmount) {
         if (!(entity instanceof ServerPlayerEntity player)) {
-            return true; // Allow death for non-players
+            return true;
         }
 
-        // Save inventory snapshot BEFORE death processing
-        saveSnapshot(player);
+        try {
+            saveSnapshot(player);
+        } catch (Exception e) {
+            SmartInventoryRecall.LOGGER.error("Failed to save snapshot for player {}: {}",
+                    player.getName().getString(), e.getMessage());
+        }
 
-        SmartInventoryRecall.LOGGER.info("Saved inventory snapshot for player: " + player.getName().getString());
-
-        // Always return true - we don't want to prevent death, just save the snapshot
         return true;
     }
 
@@ -40,7 +40,6 @@ public class DeathSnapshotHandler implements ServerLivingEntityEvents.AllowDeath
         Map<Integer, ItemStack> items = new HashMap<>();
         PlayerInventory inv = player.getInventory();
 
-        // 0-35 (Hotbar + Main Inventory)
         for (int i = 0; i < 36; i++) {
             ItemStack stack = inv.getStack(i);
             if (!stack.isEmpty()) {
@@ -49,18 +48,22 @@ public class DeathSnapshotHandler implements ServerLivingEntityEvents.AllowDeath
         }
 
         if (items.isEmpty()) {
-            SmartInventoryRecall.LOGGER.info("No items to save for player: " + player.getName().getString());
-            return; // Nothing to save
+            SmartInventoryRecall.LOGGER.debug("No items to save for player: {}", player.getName().getString());
+            return;
         }
 
-        SmartInventoryRecall.LOGGER
-                .info("Saving " + items.size() + " slot(s) for player: " + player.getName().getString());
+        try {
+            InventorySnapshot snapshot = new InventorySnapshot();
+            snapshot.save(items, ((ServerWorld) player.getEntityWorld()).getTime());
 
-        InventorySnapshot snapshot = new InventorySnapshot();
-        snapshot.save(items, ((ServerWorld) player.getEntityWorld()).getTime());
+            NbtCompound snapshotNbt = snapshot.toNbt(player.getRegistryManager());
+            player.setAttached(ModAttachments.INVENTORY_SNAPSHOT, snapshotNbt);
 
-        // Save snapshot using Data Attachment API
-        NbtCompound snapshotNbt = snapshot.toNbt(player.getRegistryManager());
-        player.setAttached(ModAttachments.INVENTORY_SNAPSHOT, snapshotNbt);
+            SmartInventoryRecall.LOGGER.info("Saved inventory snapshot ({} slots) for player: {}",
+                    items.size(), player.getName().getString());
+        } catch (Exception e) {
+            SmartInventoryRecall.LOGGER.error("Failed to serialize snapshot for player {}: {}",
+                    player.getName().getString(), e.getMessage());
+        }
     }
 }
