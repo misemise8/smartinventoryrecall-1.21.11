@@ -30,7 +30,7 @@ public class DeathDropHandler implements ServerLivingEntityEvents.AfterDeath {
     }
 
     /**
-     * Compact all dropped items near the death position into a 2-block radius (changed from 4).
+     * Compact all dropped items near the death position into a 4-block radius.
      */
     private void compactDroppedItems(ServerPlayerEntity player) {
         ServerWorld world = (ServerWorld) player.getEntityWorld();
@@ -48,9 +48,9 @@ public class DeathDropHandler implements ServerLivingEntityEvents.AfterDeath {
         double baseZ = player.getZ();
 
         for (ItemEntity itemEntity : itemEntities) {
-            // Calculate random offset within 2 blocks (changed from 4)
-            double offsetX = (random.nextDouble() * 4.0) - 2.0; // -2 to +2
-            double offsetZ = (random.nextDouble() * 4.0) - 2.0; // -2 to +2
+            // Calculate random offset within 4 blocks
+            double offsetX = (random.nextDouble() * 8.0) - 4.0;
+            double offsetZ = (random.nextDouble() * 8.0) - 4.0;
 
             // Reposition the item
             itemEntity.setPosition(baseX + offsetX, baseY, baseZ + offsetZ);

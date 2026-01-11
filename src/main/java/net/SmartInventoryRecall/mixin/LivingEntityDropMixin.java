@@ -14,7 +14,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Random;
 
 /**
- * Mixin to intercept item drops from players on death and compact them within a 2-block radius.
+ * Mixin to intercept item drops from players on death and compact them within a
+ * 4-block radius.
  */
 @Mixin(LivingEntity.class)
 public class LivingEntityDropMixin {
@@ -46,13 +47,13 @@ public class LivingEntityDropMixin {
             return;
         }
 
-        // Compact position: random offset within 2 blocks (changed from 4)
+        // Compact position: random offset within 4 blocks
         double baseX = player.getX();
         double baseY = player.getY() + 0.2; // Slight lift
         double baseZ = player.getZ();
 
-        double offsetX = (smartInventoryRecall_random.nextDouble() * 4.0) - 2.0; // -2 to +2
-        double offsetZ = (smartInventoryRecall_random.nextDouble() * 4.0) - 2.0; // -2 to +2
+        double offsetX = (smartInventoryRecall_random.nextDouble() * 8.0) - 4.0; // -4 to +4
+        double offsetZ = (smartInventoryRecall_random.nextDouble() * 8.0) - 4.0; // -4 to +4
 
         itemEntity.setPosition(baseX + offsetX, baseY, baseZ + offsetZ);
 
